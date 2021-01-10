@@ -1,0 +1,18 @@
+[package]
+name = "clone3"
+version = "0.1.0"
+edition = "2018"
+
+authors = ["Valentin Kettner <vakevk@gmail.com>"]
+categories = ["os::linux-apis"]
+description = "Rust bindings to the clone3 linux system call"
+documentation = "https://docs.rs/clone3"
+include = ["/Cargo.toml", "/src"]
+keywords = ["clone", "clone3", "linux", "syscall"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/e00E/clone3"
+
+[dependencies]
+bitflags = { version = "1.0", default-features = false }
+uapi = { version = "0.2", default-features = false }
