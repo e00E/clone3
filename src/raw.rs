@@ -13,8 +13,11 @@ pub struct CloneArgs {
     pub stack: u64,
     pub stack_size: u64,
     pub tls: u64,
+    #[cfg(feature = "linux_5-5")]
     pub set_tid: u64,
+    #[cfg(feature = "linux_5-5")]
     pub set_tid_size: u64,
+    #[cfg(feature = "linux_5-7")]
     pub cgroup: u64,
 }
 

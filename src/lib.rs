@@ -3,25 +3,25 @@
 //! See the [clone3 man page](https://man7.org/linux/man-pages/man2/clone3.2.html) for more
 //! information.
 //!
-//! This is a complex and low level operation. Users must understand the documentation to use it
-//! safely and correctly.
+//! This is a complex and generally unsafe operation. Users must understand the documentation to
+//! use it safely and correctly.
 //!
 //! # Examples
 //!
 //! ```
-//! # use clone3::{Clone3, Flags};
-//! let mut pidfd = 0;
-//! let clone3 = Clone3 {
-//!     flags: Flags::PIDFD,
-//!     pidfd: Some(&mut pidfd),
-//!     ..Default::default()
-//! };
+//! use clone3::Clone3;
+//!
+//! let mut pidfd = -1;
+//! let mut clone3 = Clone3::default();
+//! clone3.flag_pidfd(&mut pidfd);
+//!
 //! match unsafe { clone3.call() }.unwrap() {
 //!     0 => println!("i am the child"),
-//!     child=> println!("i am the parent, my child has pid {} and my pidfd is {}", child, pidfd),
+//!     child => println!("i am the parent, my child has pid {} and my pidfd is {}", child, pidfd),
 //! }
 //! ```
 
+#![doc(html_root_url = "https://docs.rs/clone3/0.2.0")]
 #![allow(clippy::missing_safety_doc)]
 
 mod raw;
@@ -37,9 +37,11 @@ bitflags::bitflags! {
     pub struct Flags: u64 {
         const CHILD_CLEARTID = 0x00200000;
         const CHILD_SETTID = 0x01000000;
+        #[cfg(feature = "linux_5-5")]
         const CLEAR_SIGHAND = 0x100000000;
         const FILES = 0x00000400;
         const FS = 0x00000200;
+        #[cfg(feature = "linux_5-7")]
         const INTO_CGROUP = 0x200000000;
         const IO = 0x80000000;
         const NEWCGROUP = 0x02000000;

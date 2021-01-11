@@ -1,4 +1,6 @@
 use crate::{CloneArgs, Flags};
+#[cfg(feature = "linux_5-7")]
+use std::os::unix::io::AsRawFd;
 use std::{
     convert::TryInto,
     os::{raw::c_long, unix::io::RawFd},
@@ -6,21 +8,183 @@ use std::{
 use uapi::{c::pid_t, Errno};
 
 /// Higher level wrapper around the clone3 system call.
-#[derive(Debug, Default)]
+///
+/// Construct it with `Clone3::default()` which sets no flags and no exit signal. Use builder
+/// methods to customize the underlying [`CloneArgs`](crate::CloneArgs). Perform the system call
+/// with [`call`](Self::call).
+#[derive(Default)]
 pub struct Clone3<'a> {
-    pub flags: Flags,
-    pub pidfd: Option<&'a mut RawFd>,
-    pub child_tid: Option<&'a mut pid_t>,
-    pub parent_tid: Option<&'a mut pid_t>,
-    pub exit_signal: u64,
-    pub stack: Option<&'a mut [u8]>,
-    pub tls: u64,
-    pub set_tid: Option<&'a [pid_t]>,
-    pub cgroup: RawFd,
+    flags: Flags,
+    pidfd: Option<&'a mut RawFd>,
+    child_tid: Option<&'a mut pid_t>,
+    parent_tid: Option<&'a mut pid_t>,
+    exit_signal: u64,
+    stack: Option<&'a mut [u8]>,
+    tls: Option<u64>,
+    #[cfg(feature = "linux_5-5")]
+    set_tid: Option<&'a [pid_t]>,
+    #[cfg(feature = "linux_5-7")]
+    cgroup: Option<&'a dyn AsRawFd>,
 }
 
 impl<'a> Clone3<'a> {
-    /// Perform the system call.
+    pub fn flag_child_cleartid(&mut self, child_tid: &'a mut pid_t) -> &mut Self {
+        self.flags.set(Flags::CHILD_CLEARTID, true);
+        self.child_tid = Some(child_tid);
+        self
+    }
+
+    #[cfg(feature = "linux_5-5")]
+    pub fn flag_child_settid(&mut self, child_tid: &'a mut pid_t) -> &mut Self {
+        self.flags.set(Flags::CHILD_SETTID, true);
+        self.child_tid = Some(child_tid);
+        self
+    }
+
+    #[cfg(feature = "linux_5-5")]
+    pub fn flag_clear_sighand(&mut self) -> &mut Self {
+        self.flags.set(Flags::CLEAR_SIGHAND, true);
+        self
+    }
+
+    pub fn flag_files(&mut self) -> &mut Self {
+        self.flags.set(Flags::FILES, true);
+        self
+    }
+
+    pub fn flag_fs(&mut self) -> &mut Self {
+        self.flags.set(Flags::FS, true);
+        self
+    }
+
+    #[cfg(feature = "Linux 5.7")]
+    pub fn flag_into_cgroup(&mut self, cgroup: &'a dyn AsRawFd) -> &mut Self {
+        self.flags.set(Flags::INTO_CGROUP, true);
+        self.cgroup = Some(cgroup);
+        self
+    }
+
+    pub fn flag_io(&mut self) -> &mut Self {
+        self.flags.set(Flags::IO, true);
+        self
+    }
+
+    pub fn flag_newcgroup(&mut self) -> &mut Self {
+        self.flags.set(Flags::NEWCGROUP, true);
+        self
+    }
+
+    pub fn flag_newipc(&mut self) -> &mut Self {
+        self.flags.set(Flags::NEWIPC, true);
+        self
+    }
+
+    pub fn flag_newnet(&mut self) -> &mut Self {
+        self.flags.set(Flags::NEWNET, true);
+        self
+    }
+
+    pub fn flag_newns(&mut self) -> &mut Self {
+        self.flags.set(Flags::NEWNS, true);
+        self
+    }
+
+    pub fn flag_newpid(&mut self) -> &mut Self {
+        self.flags.set(Flags::NEWPID, true);
+        self
+    }
+
+    pub fn flag_newtime(&mut self) -> &mut Self {
+        self.flags.set(Flags::NEWTIME, true);
+        self
+    }
+
+    pub fn flag_newuser(&mut self) -> &mut Self {
+        self.flags.set(Flags::NEWUSER, true);
+        self
+    }
+
+    pub fn flag_newuts(&mut self) -> &mut Self {
+        self.flags.set(Flags::NEWUTS, true);
+        self
+    }
+
+    pub fn flag_parent(&mut self) -> &mut Self {
+        self.flags.set(Flags::PARENT, true);
+        self
+    }
+
+    pub fn flag_parent_settid(&mut self, parent_tid: &'a mut pid_t) -> &mut Self {
+        self.flags.set(Flags::PARENT_SETTID, true);
+        self.parent_tid = Some(parent_tid);
+        self
+    }
+
+    pub fn flag_pidfd(&mut self, pidfd: &'a mut RawFd) -> &mut Self {
+        self.flags.set(Flags::PIDFD, true);
+        self.pidfd = Some(pidfd);
+        self
+    }
+
+    pub fn flag_ptrace(&mut self) -> &mut Self {
+        self.flags.set(Flags::PTRACE, true);
+        self
+    }
+
+    pub fn flag_settls(&mut self, tls: u64) -> &mut Self {
+        self.flags.set(Flags::SETTLS, true);
+        self.tls = Some(tls);
+        self
+    }
+
+    pub fn flag_sighand(&mut self) -> &mut Self {
+        self.flags.set(Flags::SIGHAND, true);
+        self
+    }
+
+    pub fn flag_sysvsem(&mut self) -> &mut Self {
+        self.flags.set(Flags::SYSVSEM, true);
+        self
+    }
+
+    pub fn flag_thread(&mut self) -> &mut Self {
+        self.flags.set(Flags::THREAD, true);
+        self
+    }
+
+    pub fn flag_untraced(&mut self) -> &mut Self {
+        self.flags.set(Flags::UNTRACED, true);
+        self
+    }
+
+    pub fn flag_vfork(&mut self) -> &mut Self {
+        self.flags.set(Flags::VFORK, true);
+        self
+    }
+
+    pub fn flag_vm(&mut self, stack: &'a mut [u8]) -> &mut Self {
+        self.flags.set(Flags::VM, true);
+        self.stack(stack);
+        self
+    }
+
+    pub fn exit_signal(&mut self, exit_signal: u64) -> &mut Self {
+        self.exit_signal = exit_signal;
+        self
+    }
+
+    pub fn stack(&mut self, stack: &'a mut [u8]) -> &mut Self {
+        self.stack = Some(stack);
+        self
+    }
+
+    #[cfg(feature = "linux_5-5")]
+    pub fn set_tid(&mut self, set_tid: &'a [pid_t]) -> &mut Self {
+        self.set_tid = Some(set_tid);
+        self
+    }
+
+    /// Performs the system call.
     ///
     /// # Errors
     ///
@@ -28,42 +192,47 @@ impl<'a> Clone3<'a> {
     ///
     /// # Panics
     ///
-    /// Panics if the following conditions are not met:
-    /// * PIDFD must be set iff pidfd is set
-    /// * at least one of CHILD_CLEARTID and CHILD_SETTID must be set iff child_tid is set
-    /// * PARENT_SETTID must be set iff parent_tid is set
-    /// * if VM is set stack must be set
-    pub unsafe fn call(self) -> Result<pid_t, Errno> {
-        self.assert_consistency();
-        let cl_args = self.into_clone_args();
-        let return_value = crate::clone3_system_call(&cl_args);
-        Self::handle_return_value(return_value)
-    }
-
-    /// Assert that the set flags match the other parameters.
-    fn assert_consistency(&self) {
-        assert_eq!(
-            self.flags.contains(Flags::PIDFD),
-            self.pidfd.is_some(),
-            "PIDFD must be set iff pidfd is set"
-        );
-        assert_eq!(
-            self.flags
-                .intersects(Flags::CHILD_CLEARTID | Flags::CHILD_SETTID),
-            self.child_tid.is_some(),
-            "at least one of CHILD_CLEARTID and CHILD_SETTID must be set iff child_tid is set"
-        );
-        assert_eq!(
-            self.flags.contains(Flags::PARENT_SETTID),
-            self.set_tid.is_some(),
-            "PARENT_SETTID must be set iff parent_tid is set"
-        );
-        if self.flags.contains(Flags::VM) {
-            assert!(self.stack.is_some(), "if VM flag is set stack must be set");
+    /// Panics if the set flags are incompatible which is a user error:
+    /// * `CHILD_CLEARTID` and `CHILD_SETTID` must not be set together
+    /// * `CLEAR_SIGHAND` and `SIGHAND` must not be set together
+    /// * `INTO_CGROUP` and `NEWCGROUP` must not be set together
+    /// * `NEWIPC` and `SYSVSEM` must not be set together
+    /// * `FS` and `NEWNS` must not be set together
+    /// * `THREAD` and `PIDFD` must not be set together
+    /// * `NEWPID` must not be set with `PARENT` or `THREAD`
+    /// * `NEWUSER` must not be set with `FS` or `PARENT` or `THREAD`
+    /// * if `SIGHAND` is set then `VM` must be set
+    /// * if `THREAD` is set then `SIGHAND` must be set
+    //
+    // For the last two conditions we could automatically set the other required but I prefer the
+    // explicitness of forcing the user to set them.
+    ///
+    /// Panics if the system call retrurns a value that neither indicates failure nor is convertible
+    /// to [`pid_t`](pid_t) which  could happen on overflow due to different type sizes. This is a
+    /// bug in the Linux kernel or the libc bindings used by this crate.
+    pub unsafe fn call(&mut self) -> Result<pid_t, Errno> {
+        if let Some(reason) = find_incompatible_flags(self.flags) {
+            panic!("flags {:?} are inconsistent: {}", self.flags, reason);
         }
+        let return_value = self.call_unchecked();
+        handle_return_value(return_value)
     }
 
-    pub fn into_clone_args(mut self) -> CloneArgs {
+    /// Performs the system call.
+    ///
+    /// Like [`call`](Self::call) but never errors or panics. Forwards the return value of the system
+    /// call.
+    pub unsafe fn call_unchecked(&mut self) -> c_long {
+        let cl_args = self.as_clone_args();
+        crate::clone3_system_call(&cl_args)
+    }
+
+    /// Returns the underlying [`CloneArgs`](crate::CloneArgs).
+    ///
+    /// Prefer using [`call`](Self::call) instead. If you manually perform the system call you must
+    /// ensure that the referenced variables stay alive and the referenced mutable variables are not
+    /// aliased.
+    pub fn as_clone_args(&mut self) -> CloneArgs {
         CloneArgs {
             flags: self.flags.bits(),
             pidfd: option_as_mut_ptr(&mut self.pidfd) as u64,
@@ -72,24 +241,58 @@ impl<'a> Clone3<'a> {
             exit_signal: self.exit_signal,
             stack: option_slice_as_mut_ptr(&mut self.stack) as u64,
             stack_size: self.stack.as_ref().map(|stack| stack.len()).unwrap_or(0) as u64,
-            tls: self.tls,
+            tls: self.tls.unwrap_or(0),
+            #[cfg(feature = "linux_5-5")]
             set_tid: option_slice_as_ptr(&self.set_tid) as u64,
+            #[cfg(feature = "linux_5-5")]
             set_tid_size: self.set_tid.map(|set_tid| set_tid.len()).unwrap_or(0) as u64,
-            cgroup: self.cgroup as u64,
+            #[cfg(feature = "linux_5-7")]
+            cgroup: self.cgroup.map(AsRawFd::as_raw_fd).unwrap_or(0) as u64,
+        }
+    }
+}
+
+fn find_incompatible_flags(flags: Flags) -> Option<String> {
+    use Flags as F;
+
+    let mutually_exclusive = [
+        (F::CHILD_CLEARTID, F::CHILD_SETTID),
+        #[cfg(feature = "linux_5-5")]
+        (F::CLEAR_SIGHAND, F::SIGHAND),
+        #[cfg(feature = "linux_5-7")]
+        (F::INTO_CGROUP, F::NEWCGROUP),
+        (F::NEWIPC, F::SYSVSEM),
+        (F::FS, F::NEWNS),
+        (F::THREAD, F::PIDFD),
+        (F::NEWPID, F::PARENT | F::THREAD),
+        (F::NEWUSER, F::FS | F::PARENT | F::THREAD),
+    ];
+    for (left, right) in mutually_exclusive.as_ref() {
+        if flags.contains(*left) && flags.intersects(*right) {
+            return Some(format!("{:?} and any of {:?} is set", left, right));
         }
     }
 
-    fn handle_return_value(return_value: c_long) -> Result<pid_t, Errno> {
-        if return_value == -1 {
-            return Err(Errno::default());
+    let implies = [(F::SIGHAND, F::VM), (F::THREAD, F::SIGHAND)];
+    for (left, right) in implies.as_ref() {
+        if flags.contains(*left) && !flags.contains(*right) {
+            return Some(format!("{:?} is set without {:?}", left, right));
         }
-        Ok(return_value.try_into().unwrap_or_else(|err| {
-            panic!(
-                "could not convert successful clone3 system call result {} to pid_t: {:?}",
-                return_value, err
-            )
-        }))
     }
+
+    None
+}
+
+fn handle_return_value(return_value: c_long) -> Result<pid_t, Errno> {
+    if return_value == -1 {
+        return Err(Errno::default());
+    }
+    Ok(return_value.try_into().unwrap_or_else(|err| {
+        panic!(
+            "could not convert successful clone3 system call result {} to pid_t: {:?}",
+            return_value, err
+        )
+    }))
 }
 
 fn option_as_mut_ptr<T>(o: &mut Option<&mut T>) -> *mut T {
@@ -99,6 +302,7 @@ fn option_as_mut_ptr<T>(o: &mut Option<&mut T>) -> *mut T {
     }
 }
 
+#[cfg(feature = "linux_5-5")]
 fn option_slice_as_ptr<T>(o: &Option<&[T]>) -> *const T {
     match o {
         Some(inner) => inner.as_ptr(),
@@ -121,11 +325,9 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn panics_when_inconsistent() {
-        let clone3 = Clone3 {
-            flags: Flags::PIDFD,
-            ..Default::default()
-        };
+    fn panics_when_incompatible() {
+        let mut clone3 = Clone3::default();
+        clone3.flag_thread();
         unsafe {
             let _ = clone3.call();
         }
@@ -133,12 +335,9 @@ mod tests {
 
     #[test]
     fn wait_for_child() {
-        let mut pidfd = 0;
-        let clone3 = Clone3 {
-            flags: Flags::PIDFD,
-            pidfd: Some(&mut pidfd),
-            ..Default::default()
-        };
+        let mut pidfd = -1;
+        let mut clone3 = Clone3::default();
+        clone3.flag_pidfd(&mut pidfd);
         let child_pid = match unsafe { clone3.call() }.unwrap() {
             0 => {
                 let sleep_duration = Duration::from_secs_f32(0.1);
@@ -149,6 +348,7 @@ mod tests {
             }
             child_pid => child_pid,
         };
+        assert!(pidfd >= 0);
 
         println!(
             "parent: waiting for child pid {} to exit on pidfd {}",
