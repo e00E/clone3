@@ -13,11 +13,9 @@ readme = "README.md"
 repository = "https://github.com/e00E/clone3"
 
 [features]
-# The supported flags and number of arguments that the clone3 system call supports changes with the
-# Linux kernel version. A newer version is backwards compatible with code written for an older one.
-default = ["linux_5-7"]
 # Each newer version depends on the previous version. When adding a new version remember to add it
-# to CI.
+# to CI and the documentation.
+default = ["linux_5-7"]
 linux_5-5 = []
 linux_5-7 = ["linux_5-5"]
 

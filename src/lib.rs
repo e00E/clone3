@@ -20,6 +20,13 @@
 //!     child => println!("i am the parent, my child has pid {} and my pidfd is {}", child, pidfd),
 //! }
 //! ```
+//!
+//! # Features
+//!
+//! The clone3 api can cahnge in a backward compatible manner between Linux kernel versions. This
+//! crates supports picking the target api through the Cargo features `linux_5-5`, `linux_5-7`.
+//! The default is the newest kernel version. Specifying no `linux` feature corresponds to the
+//! initial clone3 api.
 
 #![doc(html_root_url = "https://docs.rs/clone3/0.2.0")]
 #![allow(clippy::missing_safety_doc)]
