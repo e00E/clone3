@@ -28,7 +28,7 @@
 //! The default is the newest kernel version. Specifying no `linux` feature corresponds to the
 //! initial clone3 api.
 
-#![doc(html_root_url = "https://docs.rs/clone3/0.2.0")]
+#![doc(html_root_url = "https://docs.rs/clone3/0.2.1")]
 #![allow(clippy::missing_safety_doc)]
 
 mod raw;
