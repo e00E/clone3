@@ -195,7 +195,6 @@ impl<'a> Clone3<'a> {
     /// Panics if the set flags are incompatible which is a user error:
     /// * `CHILD_CLEARTID` and `CHILD_SETTID` must not be set together
     /// * `CLEAR_SIGHAND` and `SIGHAND` must not be set together
-    /// * `INTO_CGROUP` and `NEWCGROUP` must not be set together
     /// * `NEWIPC` and `SYSVSEM` must not be set together
     /// * `FS` and `NEWNS` must not be set together
     /// * `THREAD` and `PIDFD` must not be set together
@@ -259,8 +258,6 @@ fn find_incompatible_flags(flags: Flags) -> Option<String> {
         (F::CHILD_CLEARTID, F::CHILD_SETTID),
         #[cfg(feature = "linux_5-5")]
         (F::CLEAR_SIGHAND, F::SIGHAND),
-        #[cfg(feature = "linux_5-7")]
-        (F::INTO_CGROUP, F::NEWCGROUP),
         (F::NEWIPC, F::SYSVSEM),
         (F::FS, F::NEWNS),
         (F::THREAD, F::PIDFD),
