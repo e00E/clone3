@@ -14,6 +14,6 @@ jobs:
           for feature in "${features[@]}"; do
               echo testing feature $features
               # Need to use this syntax for `feature` so that it correctly passes the empty string.
-              cargo clippy --locked --workspace --all-targets --no-default-features --features "${feature[@]}" -- -D warnings
-              cargo test --locked --workspace --no-default-features --features "${feature[@]}"
+              cargo clippy --workspace --all-targets --no-default-features --features "${feature[@]}" -- -D warnings
+              cargo test --workspace --no-default-features --features "${feature[@]}"
           done
