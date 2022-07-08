@@ -57,7 +57,7 @@ impl<'a> Clone3<'a> {
         self
     }
 
-    #[cfg(feature = "Linux 5.7")]
+    #[cfg(feature = "linux_5-7")]
     pub fn flag_into_cgroup(&mut self, cgroup: &'a dyn AsRawFd) -> &mut Self {
         self.flags.set(Flags::INTO_CGROUP, true);
         self.cgroup = Some(cgroup);
