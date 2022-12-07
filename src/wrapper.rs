@@ -7,7 +7,7 @@ use std::{
 };
 use uapi::{c::pid_t, Errno};
 
-/// Higher level wrapper around the clone3 system call.
+/// High level wrapper around the clone3 system call.
 ///
 /// Construct it with `Clone3::default()` which sets no flags and no exit signal. Use builder
 /// methods to customize the underlying [`CloneArgs`](crate::CloneArgs). Perform the system call
@@ -192,7 +192,7 @@ impl<'a> Clone3<'a> {
     ///
     /// # Panics
     ///
-    /// Panics if the set flags are incompatible which is a user error:
+    /// Panics if the set flags are incompatible:
     /// * `CHILD_CLEARTID` and `CHILD_SETTID` must not be set together
     /// * `CLEAR_SIGHAND` and `SIGHAND` must not be set together
     /// * `NEWIPC` and `SYSVSEM` must not be set together
@@ -202,11 +202,11 @@ impl<'a> Clone3<'a> {
     /// * `NEWUSER` must not be set with `FS` or `PARENT` or `THREAD`
     /// * if `SIGHAND` is set then `VM` must be set
     /// * if `THREAD` is set then `SIGHAND` must be set
-    //
+    ///
     // For the last two conditions we could automatically set the other required but I prefer the
     // explicitness of forcing the user to set them.
-    ///
-    /// Panics if the system call retrurns a value that neither indicates failure nor is convertible
+    //
+    /// Panics if the system call returns a value that neither indicates failure nor is convertible
     /// to [`pid_t`](pid_t) which  could happen on overflow due to different type sizes. This is a
     /// bug in the Linux kernel or the libc bindings used by this crate.
     pub unsafe fn call(&mut self) -> Result<pid_t, Errno> {

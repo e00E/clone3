@@ -1,6 +1,6 @@
 [package]
 name = "clone3"
-version = "0.2.2" # remember to update readme and html_root_url
+version = "0.2.3" # remember to update readme and html_root_url
 edition = "2021"
 
 authors = ["Valentin Kettner <vakevk@gmail.com>"]

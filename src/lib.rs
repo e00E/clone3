@@ -23,12 +23,12 @@
 //!
 //! # Features
 //!
-//! The clone3 api can cahnge in a backward compatible manner between Linux kernel versions. This
-//! crates supports picking the target api through the Cargo features `linux_5-5`, `linux_5-7`.
+//! The clone3 api can change in a backward compatible manner between Linux kernel versions. This
+//! crate supports picking the target version through Cargo features like `linux_5-5`, `linux_5-7`.
 //! The default is the newest kernel version. Specifying no `linux` feature corresponds to the
 //! initial clone3 api.
 
-#![doc(html_root_url = "https://docs.rs/clone3/0.2.2")]
+#![doc(html_root_url = "https://docs.rs/clone3/0.2.3")]
 #![allow(clippy::missing_safety_doc)]
 
 mod raw;

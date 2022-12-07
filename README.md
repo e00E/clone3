@@ -1,4 +1,4 @@
-[crates.io](https://crates.io/crates/clone3), [docs.rs](https://docs.rs/clone3/0.2.2)
+[crates.io](https://crates.io/crates/clone3), [docs.rs](https://docs.rs/clone3/0.2.3)
 
 # clone3
 
